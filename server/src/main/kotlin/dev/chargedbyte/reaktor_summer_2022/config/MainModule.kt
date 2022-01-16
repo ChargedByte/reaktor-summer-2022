@@ -2,6 +2,10 @@ package dev.chargedbyte.reaktor_summer_2022.config
 
 import com.google.inject.AbstractModule
 import com.mongodb.ConnectionString
+import dev.chargedbyte.reaktor_summer_2022.feature.player.repository.PlayerRepository
+import dev.chargedbyte.reaktor_summer_2022.feature.player.repository.PlayerRepositoryImpl
+import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
+import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerServiceImpl
 import io.ktor.application.*
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineDatabase
@@ -15,6 +19,9 @@ class MainModule(private val application: Application) : AbstractModule() {
         val mongoPair = getMongoClient()
         bind(CoroutineClient::class.java).toInstance(mongoPair.first)
         bind(CoroutineDatabase::class.java).toInstance(mongoPair.second)
+
+        bind(PlayerService::class.java).to(PlayerServiceImpl::class.java).asEagerSingleton()
+        bind(PlayerRepository::class.java).to(PlayerRepositoryImpl::class.java).asEagerSingleton()
     }
 
     private fun getMongoClient(): Pair<CoroutineClient, CoroutineDatabase> {
