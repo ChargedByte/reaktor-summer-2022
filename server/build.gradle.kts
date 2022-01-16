@@ -26,6 +26,11 @@ dependencies {
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
 
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+
     implementation("org.litote.kmongo:kmongo:$kMongoVersion")
     implementation("org.litote.kmongo:kmongo-coroutine:$kMongoVersion")
     implementation("org.litote.kmongo:kmongo-id:$kMongoVersion")
@@ -38,5 +43,5 @@ dependencies {
 }
 
 application {
-
+    mainClass.set("dev.chargedbyte.reaktor_summer_2022.ApplicationKt")
 }
