@@ -1,16 +1,19 @@
 package dev.chargedbyte.reaktor_summer_2022.feature.game
 
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Player
-import org.bson.codecs.pojo.annotations.BsonId
-import org.litote.kmongo.Id
-import java.time.LocalDateTime
+import org.jetbrains.exposed.dao.Entity
+import org.jetbrains.exposed.dao.EntityClass
+import org.jetbrains.exposed.dao.id.EntityID
 
-data class Game(
-    @BsonId val id: String? = null,
-    val time: LocalDateTime,
-    val playerA: Id<Player>,
-    val handA: Hand,
-    val playerB: Id<Player>,
-    val handB: Hand,
-    val winner: Id<Player>? = null
-)
+class Game(id: EntityID<String>) : Entity<String>(id) {
+    companion object : EntityClass<String, Game>(Games)
+
+    var playedAt by Games.playedAt
+    var playerA by Player referencedOn Games.playerA
+    var handA by Games.handA
+    var playerB by Player referencedOn Games.playerB
+    var handB by Games.handB
+    var winner by Player optionalReferencedOn Games.winner
+
+    fun toDto() = GameDto(id.value, playedAt, playerA.toDto(), handA, playerB.toDto(), handB, winner?.toDto())
+}

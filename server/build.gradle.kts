@@ -1,8 +1,11 @@
+val exposedVersion: String by project
+val flywayVersion: String by project
 val guiceVersion: String by project
-val kMongoVersion: String by project
+val hikariCpVersion: String by project
 val kotlinVersion: String by project
 val ktorVersion: String by project
 val logbackVersion: String by project
+val postgreSqlVersion: String by project
 
 plugins {
     application
@@ -31,9 +34,16 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("org.litote.kmongo:kmongo:$kMongoVersion")
-    implementation("org.litote.kmongo:kmongo-coroutine:$kMongoVersion")
-    implementation("org.litote.kmongo:kmongo-id:$kMongoVersion")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+
+    implementation("com.zaxxer:HikariCP:$hikariCpVersion")
+
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+
+    implementation("org.postgresql:postgresql:$postgreSqlVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
