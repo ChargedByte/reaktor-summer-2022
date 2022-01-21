@@ -9,3 +9,7 @@ class PlayerById(val id: Int)
 @KtorExperimentalLocationsAPI
 @Location(PlayerConstant.PLAYER_BY_NAME)
 class PlayerByName(val name: String)
+
+@KtorExperimentalLocationsAPI
+@Location(PlayerConstant.PLAYER_STATS)
+class PlayerStats(val id: Int)

@@ -5,13 +5,9 @@ import dev.chargedbyte.reaktor_summer_2022.feature.game.Game
 import dev.chargedbyte.reaktor_summer_2022.feature.game.Games
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Players
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
-import kotlinx.coroutines.Deferred
-import org.jetbrains.exposed.sql.alias
-import org.jetbrains.exposed.sql.innerJoin
-import org.jetbrains.exposed.sql.or
-import org.jetbrains.exposed.sql.selectAll
+import dev.chargedbyte.reaktor_summer_2022.model.Hand
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDateTime
@@ -21,28 +17,28 @@ import javax.inject.Inject
 class GameServiceImpl @Inject constructor(private val playerService: PlayerService) : GameService {
     private val logger = LoggerFactory.getLogger(GameServiceImpl::class.java)
 
-    override suspend fun findAllPagedAsync(size: Int, page: Long): Deferred<Pair<List<Game>, Long>> =
-        suspendedTransactionAsync {
-            val totalPages = (count() / size) + 1
+    override suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long> = newSuspendedTransaction {
+        val totalPages = (count() / size) + 1
 
-            val pA = Players.alias("pA")
-            val pB = Players.alias("pB")
-            val w = Players.alias("w")
+        val pA = Players.alias("pA")
+        val pB = Players.alias("pB")
+        val w = Players.alias("w")
 
-            val games = Games.innerJoin(pA, { playerA }, { pA[Players.id] })
-                .innerJoin(pB, { Games.playerB }, { pB[Players.id] }).innerJoin(w, { Games.winner }, { w[Players.id] })
-                .selectAll().limit(size, size * page).orderBy(Games.playedAt).map { Game.wrapRow(it) }.toList()
+        val games =
+            Games.innerJoin(pA, { playerA }, { pA[Players.id] }).innerJoin(pB, { Games.playerB }, { pB[Players.id] })
+                .innerJoin(w, { Games.winner }, { w[Players.id] }).selectAll().limit(size, size * page)
+                .orderBy(Games.playedAt).map { Game.wrapRow(it) }.toList()
 
-            return@suspendedTransactionAsync Pair(games, totalPages)
-        }
+        Pair(games, totalPages)
+    }
 
-    override suspend fun saveAllAsync(games: List<ApiGame>) = suspendedTransactionAsync {
+    override suspend fun saveAll(games: List<ApiGame>) = newSuspendedTransaction {
         var count = 0
 
         games.forEach {
             if (!existsById(it.gameId)) {
-                val playerA = playerService.findByNameOrCreateAsync(it.playerA.name).await()
-                val playerB = playerService.findByNameOrCreateAsync(it.playerB.name).await()
+                val playerA = playerService.findByNameOrCreate(it.playerA.name)
+                val playerB = playerService.findByNameOrCreate(it.playerB.name)
 
                 val handA = it.playerA.played
                 val handB = it.playerB.played
@@ -67,17 +63,24 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
         logger.info("Created new games: $count")
     }
 
-    override suspend fun findByIdAsync(id: String) = suspendedTransactionAsync { Game.findById(id) }
+    override suspend fun findById(id: String) = newSuspendedTransaction { Game.findById(id) }
 
-    override suspend fun existsById(id: String) = findByIdAsync(id).await() != null
+    override suspend fun existsById(id: String) = findById(id) != null
 
     override suspend fun count() = newSuspendedTransaction { Game.count() }
 
-    override suspend fun findGamesByPlayerIdAsync(playerId: Int) = suspendedTransactionAsync {
-        Game.find { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.toList()
+    override suspend fun countGamesByPlayerId(playerId: Int) =
+        newSuspendedTransaction { Games.select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.count() }
+
+    override suspend fun countGamesByPlayerIdAndWon(playerId: Int) =
+        newSuspendedTransaction { Games.select { Games.winner eq playerId }.count() }
+
+    override suspend fun countGamesByPlayerIdWhereHandWasPlayed(playerId: Int, hand: Hand) = newSuspendedTransaction {
+        Games.select { ((Games.playerA eq playerId) and (Games.handA eq hand)) or ((Games.playerB eq playerId) and (Games.handB eq hand)) }
+            .count()
     }
 
-    override suspend fun findGamesWonByPlayerIdAsync(playerId: Int) = suspendedTransactionAsync {
-        Game.find { Games.winner eq playerId }.toList()
-    }
+    override suspend fun mostPlayedHandByPlayerId(playerId: Int) =
+        Hand.values().map { it to countGamesByPlayerIdWhereHandWasPlayed(playerId, it) }
+            .maxByOrNull { it.second }!!.first
 }

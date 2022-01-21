@@ -1,6 +1,5 @@
 package dev.chargedbyte.reaktor_summer_2022.feature.game.routing
 
-import dev.chargedbyte.reaktor_summer_2022.feature.game.GameDto
 import dev.chargedbyte.reaktor_summer_2022.feature.game.service.GameService
 import io.ktor.application.*
 import io.ktor.http.*
@@ -21,7 +20,7 @@ class GameRoutes @Inject constructor(application: Application, gameService: Game
                     return@get
                 }
 
-                val (games, total) = gameService.findAllPagedAsync(request.size, request.page).await()
+                val (games, total) = gameService.findAllPaged(request.size, request.page)
 
                 if (gameService.count() == 0L || request.page >= total) {
                     call.respond(HttpStatusCode.NoContent)
@@ -35,5 +34,3 @@ class GameRoutes @Inject constructor(application: Application, gameService: Game
         }
     }
 }
-
-private data class GamesPagedResponse(val totalPages: Long, val games: List<GameDto>)

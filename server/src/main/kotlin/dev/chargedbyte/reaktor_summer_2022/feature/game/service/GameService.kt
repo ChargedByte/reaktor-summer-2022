@@ -2,14 +2,16 @@ package dev.chargedbyte.reaktor_summer_2022.feature.game.service
 
 import dev.chargedbyte.reaktor_summer_2022.feature.api.model.ApiGame
 import dev.chargedbyte.reaktor_summer_2022.feature.game.Game
-import kotlinx.coroutines.Deferred
+import dev.chargedbyte.reaktor_summer_2022.model.Hand
 
 interface GameService {
-    suspend fun findAllPagedAsync(size: Int, page: Long): Deferred<Pair<List<Game>, Long>>
-    suspend fun saveAllAsync(games: List<ApiGame>): Deferred<Unit>
-    suspend fun findByIdAsync(id: String): Deferred<Game?>
+    suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long>
+    suspend fun saveAll(games: List<ApiGame>)
+    suspend fun findById(id: String): Game?
     suspend fun existsById(id: String): Boolean
     suspend fun count(): Long
-    suspend fun findGamesByPlayerIdAsync(playerId: Int): Deferred<List<Game>>
-    suspend fun findGamesWonByPlayerIdAsync(playerId: Int): Deferred<List<Game>>
+    suspend fun countGamesByPlayerId(playerId: Int): Long
+    suspend fun countGamesByPlayerIdAndWon(playerId: Int): Long
+    suspend fun countGamesByPlayerIdWhereHandWasPlayed(playerId: Int, hand: Hand): Long
+    suspend fun mostPlayedHandByPlayerId(playerId: Int): Hand
 }
