@@ -1,6 +1,7 @@
 package dev.chargedbyte.reaktor_summer_2022.feature.game
 
 import dev.chargedbyte.reaktor_summer_2022.feature.player.PlayerDto
+import dev.chargedbyte.reaktor_summer_2022.model.Hand
 import java.time.LocalDateTime
 
 data class GameDto(

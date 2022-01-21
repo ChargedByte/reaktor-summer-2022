@@ -1,6 +1,7 @@
 package dev.chargedbyte.reaktor_summer_2022.feature.game
 
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Players
+import dev.chargedbyte.reaktor_summer_2022.model.Hand
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.javatime.datetime
 

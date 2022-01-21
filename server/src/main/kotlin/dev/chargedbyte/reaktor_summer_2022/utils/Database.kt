@@ -1,4 +1,4 @@
-package dev.chargedbyte.reaktor_summer_2022.core.util
+package dev.chargedbyte.reaktor_summer_2022.utils
 
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 

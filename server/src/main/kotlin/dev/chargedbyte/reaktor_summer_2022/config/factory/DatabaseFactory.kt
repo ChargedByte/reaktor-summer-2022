@@ -32,6 +32,7 @@ class DatabaseFactory(config: ApplicationConfig) {
     private fun createPool(): HikariDataSource {
         val hikariConfig = HikariConfig().apply {
             jdbcUrl = databaseUrl
+            isAutoCommit = false
             validate()
         }
         return HikariDataSource(hikariConfig)
