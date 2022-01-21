@@ -11,9 +11,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import javax.inject.Inject
 
 class HistoryLoader @Inject constructor(private val client: HttpClient, private val gameService: GameService) {
+    private val logger = LoggerFactory.getLogger(HistoryLoader::class.java)
+
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private var etag: String? = null
@@ -43,6 +46,8 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
         val history = response.receive<History>()
 
         gameService.saveAll(history.data)
+
+        logger.info("Executed fetch on cursor: ${cursor ?: "/rps/history"}")
 
         if (!completeCursors.contains(history.cursor)) {
             execute(history.cursor)

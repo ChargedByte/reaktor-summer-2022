@@ -3,9 +3,12 @@ package dev.chargedbyte.reaktor_summer_2022.feature.player.service
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Player
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Players
 import dev.chargedbyte.reaktor_summer_2022.utils.databaseQuery
+import org.slf4j.LoggerFactory
 import javax.inject.Inject
 
 class PlayerServiceImpl @Inject constructor() : PlayerService {
+    private val logger = LoggerFactory.getLogger(PlayerServiceImpl::class.java)
+
     override suspend fun findById(id: Int) = databaseQuery { Player.findById(id) }
 
     override suspend fun findByName(name: String) = databaseQuery { Player.find { Players.name eq name }.firstOrNull() }
@@ -19,6 +22,8 @@ class PlayerServiceImpl @Inject constructor() : PlayerService {
                     this.name = name
                 }
             }
+
+            logger.info("Created a new player: ${player.name}")
         }
 
         return player
