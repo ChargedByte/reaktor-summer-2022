@@ -5,6 +5,7 @@ import dev.chargedbyte.reaktor_summer_2022.config.factory.DatabaseFactory
 import dev.chargedbyte.reaktor_summer_2022.feature.api.HistoryLoader
 import dev.chargedbyte.reaktor_summer_2022.feature.game.service.GameService
 import dev.chargedbyte.reaktor_summer_2022.feature.game.service.GameServiceImpl
+import dev.chargedbyte.reaktor_summer_2022.feature.player.routing.PlayerRoutes
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerServiceImpl
 import io.ktor.application.*
@@ -37,6 +38,7 @@ class MainModule(private val application: Application) : AbstractModule() {
 
         bind(HistoryLoader::class.java).asEagerSingleton()
 
+        bind(PlayerRoutes::class.java).asEagerSingleton()
         bind(PlayerService::class.java).to(PlayerServiceImpl::class.java).asEagerSingleton()
 
         bind(GameService::class.java).to(GameServiceImpl::class.java).asEagerSingleton()
