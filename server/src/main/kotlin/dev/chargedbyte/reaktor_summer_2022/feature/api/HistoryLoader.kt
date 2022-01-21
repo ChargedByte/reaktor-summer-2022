@@ -121,7 +121,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             execute(history.cursor)
         }
 
-        gameService.saveAllAsync(history.data).await()
+        gameService.saveAll(history.data)
     }
 
     private suspend fun get(cursor: String) = client.get<HttpResponse>("https://bad-api-assignment.reaktor.com$cursor")
