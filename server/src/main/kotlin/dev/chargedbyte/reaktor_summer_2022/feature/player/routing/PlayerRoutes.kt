@@ -14,12 +14,12 @@ class PlayerRoutes @Inject constructor(application: Application, playerService: 
     init {
         application.routing {
             get<PlayerById> {
-                val player = playerService.findById(it.id)
+                val player = playerService.findByIdAsync(it.id).await()
                 if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
             }
 
             get<PlayerByName> {
-                val player = playerService.findByName(it.name)
+                val player = playerService.findByNameAsync(it.name).await()
                 if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
             }
         }

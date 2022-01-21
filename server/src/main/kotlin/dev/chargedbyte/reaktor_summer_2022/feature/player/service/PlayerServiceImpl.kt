@@ -2,30 +2,31 @@ package dev.chargedbyte.reaktor_summer_2022.feature.player.service
 
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Player
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Players
-import dev.chargedbyte.reaktor_summer_2022.utils.databaseQuery
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
 
 class PlayerServiceImpl @Inject constructor() : PlayerService {
     private val logger = LoggerFactory.getLogger(PlayerServiceImpl::class.java)
 
-    override suspend fun findById(id: Int) = databaseQuery { Player.findById(id) }
+    override suspend fun findByIdAsync(id: Int) = suspendedTransactionAsync { Player.findById(id) }
 
-    override suspend fun findByName(name: String) = databaseQuery { Player.find { Players.name eq name }.firstOrNull() }
+    override suspend fun findByNameAsync(name: String) =
+        suspendedTransactionAsync { Player.find { Players.name eq name }.firstOrNull() }
 
-    override suspend fun findByNameOrCreate(name: String): Player {
-        var player = findByName(name)
+    override suspend fun findByNameOrCreateAsync(name: String) = suspendedTransactionAsync {
+        var player = findByNameAsync(name).await()
 
         if (player == null) {
-            player = databaseQuery {
+            player = suspendedTransactionAsync {
                 Player.new {
                     this.name = name
                 }
-            }
+            }.await()
 
             logger.info("Created a new player: ${player.name}")
         }
 
-        return player
+        return@suspendedTransactionAsync player
     }
 }

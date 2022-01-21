@@ -22,6 +22,7 @@ class DatabaseFactory(config: ApplicationConfig) {
             .dataSource(dataSource).load()
 
         try {
+            flyway.info()
             flyway.migrate()
         } catch (ex: Exception) {
             println("Migration failed: ${ex.message}")
