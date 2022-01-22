@@ -9,6 +9,7 @@ import dev.chargedbyte.reaktor_summer_2022.model.Hand
 import dev.chargedbyte.reaktor_summer_2022.utils.suspendedDatabaseQuery
 import org.jetbrains.exposed.sql.*
 import org.slf4j.LoggerFactory
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -32,36 +33,43 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
         Pair(games, totalPages)
     }
 
-    override suspend fun saveAll(games: List<ApiGame>) = suspendedDatabaseQuery {
-        var count = 0
+    override suspend fun saveAll(cursor: String, fetchDuration: Duration, games: List<ApiGame>) =
+        suspendedDatabaseQuery {
+            var count = 0
 
-        games.forEach {
-            if (!existsById(it.gameId)) {
-                val playerA = playerService.findByNameOrCreate(it.playerA.name)
-                val playerB = playerService.findByNameOrCreate(it.playerB.name)
+            val startTime = Instant.now()
 
-                val handA = it.playerA.played
-                val handB = it.playerB.played
+            games.forEach {
+                if (!existsById(it.gameId)) {
+                    val playerA = playerService.findByNameOrCreate(it.playerA.name)
+                    val playerB = playerService.findByNameOrCreate(it.playerB.name)
 
-                val winner = if (handA.beats(handB)) playerA else if (handB.beats(handA)) playerB else null
+                    val handA = it.playerA.played
+                    val handB = it.playerB.played
 
-                val playedAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.t), ZoneId.systemDefault())
+                    val winner = if (handA.beats(handB)) playerA else if (handB.beats(handA)) playerB else null
 
-                Game.new(it.gameId) {
-                    this.playedAt = playedAt
-                    this.playerA = playerA
-                    this.handA = handA
-                    this.playerB = playerB
-                    this.handB = handB
-                    this.winner = winner
+                    val playedAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.t), ZoneId.systemDefault())
+
+                    Game.new(it.gameId) {
+                        this.playedAt = playedAt
+                        this.playerA = playerA
+                        this.handA = handA
+                        this.playerB = playerB
+                        this.handB = handB
+                        this.winner = winner
+                    }
+
+                    count++
                 }
-
-                count++
             }
-        }
 
-        logger.info("Created new games: $count")
-    }
+            val duration = Duration.between(startTime, Instant.now())
+
+            logger.debug("Created $count new games for cursor $cursor in $duration")
+
+            logger.info("Added $count new games from cursor $cursor in ${fetchDuration + duration}")
+        }
 
     override suspend fun findById(id: String) = suspendedDatabaseQuery { Game.findById(id) }
 

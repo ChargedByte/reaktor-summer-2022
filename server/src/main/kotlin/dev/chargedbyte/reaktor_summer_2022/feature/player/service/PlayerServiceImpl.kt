@@ -24,7 +24,7 @@ class PlayerServiceImpl @Inject constructor() : PlayerService {
                 }
             }
 
-            logger.info("Created a new player: ${player.name}")
+            logger.debug("Created a new player: ${player.name}")
         }
 
         return player

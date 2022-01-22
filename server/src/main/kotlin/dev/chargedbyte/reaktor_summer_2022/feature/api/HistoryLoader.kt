@@ -67,10 +67,12 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             }
         }
 
+        val startTime = Instant.now()
+
         val response = runCatching { get(cursor) }.getOrElse {
             if (parent.isCancelled) return@launch
 
-            logger.info("Failed fetch on cursor: $cursor, retrying")
+            logger.info("Failed fetch on cursor $cursor, retrying")
             return@launch
         }
 
@@ -104,13 +106,15 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
 
         val history = response.receive<History>()
 
-        logger.info("Completed fetch on cursor: $cursor")
+        val duration = Duration.between(startTime, Instant.now())
+
+        logger.debug("Completed fetch on cursor $cursor in $duration")
 
         if (history.cursor != null && !jobs.containsKey(history.cursor)) {
             jobs[history.cursor] = null
         }
 
-        launch { gameService.saveAll(history.data) }.join()
+        launch { gameService.saveAll(cursor, duration, history.data) }.join()
     }
 
     private suspend fun get(cursor: String) = client.get<HttpResponse>("https://bad-api-assignment.reaktor.com$cursor")
