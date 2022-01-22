@@ -1,7 +1,5 @@
 package dev.chargedbyte.reaktor_summer_2022.feature.api
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import dev.chargedbyte.reaktor_summer_2022.feature.api.model.History
 import dev.chargedbyte.reaktor_summer_2022.feature.game.service.GameService
 import io.ktor.client.*
@@ -11,7 +9,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
@@ -29,30 +26,14 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
     private val rateLimitRemaining = AtomicInteger(500)
     private val rateLimitReset = AtomicLong(0)
 
-    private lateinit var completed: MutableMap<String, String?>
+    private val completed = mutableMapOf<String, String?>()
 
     init {
         Runtime.getRuntime().addShutdownHook(object : Thread() {
             override fun run() = runBlocking {
                 parent.cancel()
-
-                val mapper = ObjectMapper()
-                val completedFile = File("completed.json")
-
-                mapper.writeValue(completedFile, completed)
             }
         })
-
-        val typeRef = object : TypeReference<MutableMap<String, String?>>() {}
-
-        val mapper = ObjectMapper()
-        val completedFile = File("completed.json")
-
-        completed = if (completedFile.exists()) {
-            mapper.readValue(completedFile, typeRef)
-        } else {
-            mutableMapOf()
-        }
 
         scope.launch {
             while (true) {
@@ -84,6 +65,12 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
         }
 
         val response = get(cursor)
+
+        if (response == null) {
+            logger.info("Failed fetch on cursor: $cursor, retrying")
+            scope.launch { execute(cursor) }
+            return
+        }
 
         // We are relying on weak ETags here
         if (completed[cursor] == response.etag()) {
@@ -124,5 +111,12 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
         gameService.saveAll(history.data)
     }
 
-    private suspend fun get(cursor: String) = client.get<HttpResponse>("https://bad-api-assignment.reaktor.com$cursor")
+    private suspend fun get(cursor: String): HttpResponse? {
+        return try {
+            client.get<HttpResponse>("https://bad-api-assignment.reaktor.com$cursor")
+        } catch (ex: Exception) {
+            logger.warn("Connection failed: ${ex.message}")
+            null
+        }
+    }
 }
