@@ -22,11 +22,12 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
 
     private val scope = CoroutineScope(Dispatchers.IO + parent)
 
-    private var rateLimitLimit: Int? = null
+    private var rateLimitLimit = AtomicInteger()
     private val rateLimitRemaining = AtomicInteger(500)
     private val rateLimitReset = AtomicLong(0)
 
-    private val completed = mutableMapOf<String, String?>()
+    private val jobs = mutableMapOf<String, Job?>("/rps/history" to null)
+    private val etags = mutableMapOf<String, String?>()
 
     init {
         Runtime.getRuntime().addShutdownHook(object : Thread() {
@@ -37,21 +38,23 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
 
         scope.launch {
             while (true) {
-                val start = Instant.now()
+                if (parent.isCancelled) break
 
-                launch { execute() }.join()
+                val iter = jobs.iterator()
+                while (iter.hasNext()) {
+                    val (cursor, job) = iter.next()
 
-                val end = Instant.now()
+                    if (job != null) continue
 
-                val duration = Duration.between(start, end)
-                logger.info("HistoryLoader completed in $duration")
+                    jobs[cursor] = fetch(cursor)
+                }
+
+                delay(125)
             }
         }
     }
 
-    private suspend fun execute(cursor: String = "/rps/history") {
-        logger.info("Starting fetch on cursor: $cursor")
-
+    private suspend fun fetch(cursor: String) = scope.launch {
         // Let's wait for the rate limit to reset
         if (rateLimitRemaining.get() <= 0) {
             val reset = Instant.ofEpochSecond(rateLimitReset.get())
@@ -64,29 +67,28 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             }
         }
 
-        val response = get(cursor)
+        val response = runCatching { get(cursor) }.getOrElse {
+            if (parent.isCancelled) return@launch
 
-        if (response == null) {
             logger.info("Failed fetch on cursor: $cursor, retrying")
-            scope.launch { execute(cursor) }
-            return
+            return@launch
         }
 
         // We are relying on weak ETags here
-        if (completed[cursor] == response.etag()) {
-            return
+        if (etags[cursor] == response.etag()) {
+            return@launch
         }
-        completed[cursor] = response.etag()
+        etags[cursor] = response.etag()
 
         // We are assuming that the rate limit headers are always present
 
-        // This is technically a waste of time, as long as the rate limit max value doesn't change
-        val rateLimitLimitHeader = response.headers["X-Ratelimit-Limit"]
-        if (rateLimitLimitHeader != null) {
-            val i = rateLimitLimitHeader.toInt()
-            if (i != rateLimitLimit) {
-                rateLimitLimit = i
-                rateLimitRemaining.set(rateLimitLimit!!)
+        if (rateLimitLimit.get() == 0) {
+            val rateLimitLimitHeader = response.headers["X-Ratelimit-Limit"]
+            if (rateLimitLimitHeader != null) {
+                val i = rateLimitLimitHeader.toInt()
+                if (i != rateLimitLimit.get()) {
+                    rateLimitLimit.set(i)
+                }
             }
         }
 
@@ -102,21 +104,14 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
 
         val history = response.receive<History>()
 
-        logger.info("Executed fetch on cursor: $cursor")
+        logger.info("Completed fetch on cursor: $cursor")
 
-        if (history.cursor != null) {
-            execute(history.cursor)
+        if (history.cursor != null && !jobs.containsKey(history.cursor)) {
+            jobs[history.cursor] = null
         }
 
         gameService.saveAll(history.data)
     }
 
-    private suspend fun get(cursor: String): HttpResponse? {
-        return try {
-            client.get<HttpResponse>("https://bad-api-assignment.reaktor.com$cursor")
-        } catch (ex: Exception) {
-            logger.warn("Connection failed: ${ex.message}")
-            null
-        }
-    }
+    private suspend fun get(cursor: String) = client.get<HttpResponse>("https://bad-api-assignment.reaktor.com$cursor")
 }

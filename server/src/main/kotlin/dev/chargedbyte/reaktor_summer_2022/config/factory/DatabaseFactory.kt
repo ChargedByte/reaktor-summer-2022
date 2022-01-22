@@ -34,6 +34,8 @@ class DatabaseFactory(config: ApplicationConfig) {
         val hikariConfig = HikariConfig().apply {
             jdbcUrl = databaseUrl
             isAutoCommit = false
+            maximumPoolSize = 64
+            transactionIsolation = "TRANSACTION_READ_UNCOMMITTED"
             validate()
         }
         return HikariDataSource(hikariConfig)

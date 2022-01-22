@@ -6,8 +6,8 @@ import dev.chargedbyte.reaktor_summer_2022.feature.game.Games
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Players
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
 import dev.chargedbyte.reaktor_summer_2022.model.Hand
+import dev.chargedbyte.reaktor_summer_2022.utils.suspendedDatabaseQuery
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDateTime
@@ -17,7 +17,7 @@ import javax.inject.Inject
 class GameServiceImpl @Inject constructor(private val playerService: PlayerService) : GameService {
     private val logger = LoggerFactory.getLogger(GameServiceImpl::class.java)
 
-    override suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long> = newSuspendedTransaction {
+    override suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long> = suspendedDatabaseQuery {
         val totalPages = (count() / size) + 1
 
         val pA = Players.alias("pA")
@@ -32,7 +32,7 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
         Pair(games, totalPages)
     }
 
-    override suspend fun saveAll(games: List<ApiGame>) = newSuspendedTransaction {
+    override suspend fun saveAll(games: List<ApiGame>) = suspendedDatabaseQuery {
         var count = 0
 
         games.forEach {
@@ -63,19 +63,19 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
         logger.info("Created new games: $count")
     }
 
-    override suspend fun findById(id: String) = newSuspendedTransaction { Game.findById(id) }
+    override suspend fun findById(id: String) = suspendedDatabaseQuery { Game.findById(id) }
 
     override suspend fun existsById(id: String) = findById(id) != null
 
-    override suspend fun count() = newSuspendedTransaction { Game.count() }
+    override suspend fun count() = suspendedDatabaseQuery { Game.count() }
 
     override suspend fun countGamesByPlayerId(playerId: Int) =
-        newSuspendedTransaction { Games.select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.count() }
+        suspendedDatabaseQuery { Games.select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.count() }
 
     override suspend fun countGamesByPlayerIdAndWon(playerId: Int) =
-        newSuspendedTransaction { Games.select { Games.winner eq playerId }.count() }
+        suspendedDatabaseQuery { Games.select { Games.winner eq playerId }.count() }
 
-    override suspend fun countGamesByPlayerIdWhereHandWasPlayed(playerId: Int, hand: Hand) = newSuspendedTransaction {
+    override suspend fun countGamesByPlayerIdWhereHandWasPlayed(playerId: Int, hand: Hand) = suspendedDatabaseQuery {
         Games.select { ((Games.playerA eq playerId) and (Games.handA eq hand)) or ((Games.playerB eq playerId) and (Games.handB eq hand)) }
             .count()
     }
