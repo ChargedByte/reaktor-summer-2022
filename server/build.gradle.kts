@@ -57,3 +57,9 @@ dependencies {
 application {
     mainClass.set("dev.chargedbyte.reaktor_summer_2022.ApplicationKt")
 }
+
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
