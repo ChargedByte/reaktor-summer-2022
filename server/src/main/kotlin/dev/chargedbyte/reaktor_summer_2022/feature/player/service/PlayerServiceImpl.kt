@@ -3,8 +3,12 @@ package dev.chargedbyte.reaktor_summer_2022.feature.player.service
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Player
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Players
 import dev.chargedbyte.reaktor_summer_2022.utils.suspendedDatabaseQuery
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
 import javax.inject.Inject
+
+val findByNameOrCreateMutex = Mutex()
 
 class PlayerServiceImpl @Inject constructor() : PlayerService {
     private val logger = LoggerFactory.getLogger(PlayerServiceImpl::class.java)
@@ -14,7 +18,7 @@ class PlayerServiceImpl @Inject constructor() : PlayerService {
     override suspend fun findByName(name: String) =
         suspendedDatabaseQuery { Player.find { Players.name eq name }.firstOrNull() }
 
-    override suspend fun findByNameOrCreate(name: String): Player {
+    override suspend fun findByNameOrCreate(name: String) = findByNameOrCreateMutex.withLock {
         var player = findByName(name)
 
         if (player == null) {
@@ -27,6 +31,6 @@ class PlayerServiceImpl @Inject constructor() : PlayerService {
             logger.debug("Created a new player: ${player.name}")
         }
 
-        return player
+        player
     }
 }

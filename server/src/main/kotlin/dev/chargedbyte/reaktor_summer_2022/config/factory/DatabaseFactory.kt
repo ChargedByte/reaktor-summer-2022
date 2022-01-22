@@ -22,7 +22,6 @@ class DatabaseFactory(config: ApplicationConfig) {
             .dataSource(dataSource).load()
 
         try {
-            flyway.info()
             flyway.migrate()
         } catch (ex: Exception) {
             println("Migration failed: ${ex.message}")
@@ -34,8 +33,6 @@ class DatabaseFactory(config: ApplicationConfig) {
         val hikariConfig = HikariConfig().apply {
             jdbcUrl = databaseUrl
             isAutoCommit = false
-            maximumPoolSize = 64
-            transactionIsolation = "TRANSACTION_READ_UNCOMMITTED"
             validate()
         }
         return HikariDataSource(hikariConfig)
