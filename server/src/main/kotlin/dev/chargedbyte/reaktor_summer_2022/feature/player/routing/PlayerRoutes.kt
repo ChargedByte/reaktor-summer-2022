@@ -1,5 +1,6 @@
 package dev.chargedbyte.reaktor_summer_2022.feature.player.routing
 
+import dev.chargedbyte.reaktor_summer_2022.feature.game.routing.GamesPagedResponse
 import dev.chargedbyte.reaktor_summer_2022.feature.game.service.GameService
 import dev.chargedbyte.reaktor_summer_2022.feature.player.PlayerStatsDto
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
@@ -17,7 +18,7 @@ class PlayerRoutes @Inject constructor(
 ) {
     init {
         application.routing {
-            get<PlayerById> {
+            get<Player> {
                 val player = playerService.findById(it.id)
                 if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
             }
@@ -35,6 +36,12 @@ class PlayerRoutes @Inject constructor(
                 val winRatio = (wins / total * 1.0)
 
                 PlayerStatsDto(wins, total, winRatio, mostPlayed)
+            }
+
+            get<PlayerGamesPaged> { request ->
+                val (games, total) = gameService.findGamesByPlayerIdPaged(request.id, request.size, request.page)
+
+                call.respond(GamesPagedResponse(total, games.map { it.toDto() }))
             }
         }
     }

@@ -7,6 +7,7 @@ import java.time.Duration
 
 interface GameService {
     suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long>
+    suspend fun findGamesByPlayerIdPaged(playerId: Int, size: Int, page: Long): Pair<List<Game>, Long>
     suspend fun saveAll(cursor: String, fetchDuration: Duration, games: List<ApiGame>)
     suspend fun findById(id: String): Game?
     suspend fun existsById(id: String): Boolean

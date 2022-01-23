@@ -37,6 +37,24 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
         Pair(games, totalPages)
     }
 
+    override suspend fun findGamesByPlayerIdPaged(playerId: Int, size: Int, page: Long): Pair<List<Game>, Long> =
+        suspendedDatabaseQuery {
+            val totalPages = (countGamesByPlayerId(playerId) / size) + 1
+
+            val pA = Players.alias("pA")
+            val pB = Players.alias("pB")
+            val w = Players.alias("w")
+
+            val games =
+                Games.innerJoin(pA, { playerA }, { pA[Players.id] })
+                    .innerJoin(pB, { Games.playerB }, { pB[Players.id] })
+                    .innerJoin(w, { Games.winner }, { w[Players.id] })
+                    .select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.limit(size, size * page)
+                    .orderBy(Games.playedAt).map { Game.wrapRow(it) }.toList()
+
+            Pair(games, totalPages)
+        }
+
     override suspend fun saveAll(cursor: String, fetchDuration: Duration, games: List<ApiGame>) =
         saveAllMutex.withLock {
             suspendedDatabaseQuery {
