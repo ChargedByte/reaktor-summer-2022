@@ -60,11 +60,9 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
                         val reset = Instant.ofEpochSecond(rateLimitReset.get())
                         val duration = Duration.between(Instant.now(), reset)
 
-                        val millis = duration.toMillis() + 1
+                        logger.info("Rate limited, waiting for $duration before continuing")
 
-                        logger.info("Rate limited, waiting for $millis ms before continuing")
-
-                        delay(millis)
+                        delay(duration.toMillis() + 1)
 
                         rateLimitRemaining.set(500)
                     }
@@ -75,6 +73,8 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
                 }
 
                 jobs.values.forEach { it?.join() }
+
+                delay(125)
             }
         }
     }
