@@ -6,7 +6,7 @@ My solution to Reaktor's Trainee Developer, summer
 At the moment this application is incomplete. The server is working and apart from adding some routes should be ready to
 use. The client on the other hand is in early stages, it shouldn't take too long to get it working though.
 
-## Feature I intended to implement
+## Features I intended to implement
 
 - [ ] Testing
 - [ ] Continuous integration
