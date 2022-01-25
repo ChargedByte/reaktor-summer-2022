@@ -6,7 +6,7 @@ My solution to Reaktor's Trainee Developer, summer
 At the moment this application is incomplete. The server is working and apart from adding some routes should be ready to
 use. The client on the other hand is in early stages, it shouldn't take too long to get it working though.
 
-## Possible features
+## Feature I intended to implement
 
 - [ ] Testing
 - [ ] Continuous integration
@@ -28,6 +28,7 @@ The server is written in [Kotlin](https://kotlinlang.org/).
 
 Libraries used:
 
+- [Guice](https://github.com/google/guice): Dependency injection
 - [Ktor](https://github.com/ktorio/ktor): Web Server/Client framework
 - [Netty](https://github.com/netty/netty): Asynchronous Web Server
 - [Exposed](https://github.com/JetBrains/Exposed): ORM framework
