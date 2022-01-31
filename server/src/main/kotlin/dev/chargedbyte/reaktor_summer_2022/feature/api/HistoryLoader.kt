@@ -88,8 +88,9 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             if (ex.response.status == HttpStatusCode.NotModified) {
                 return
             }
-
-            logger.error("Error occurred while fetching history", ex)
+            throw ex
+        } catch (ex: Exception) {
+            logger.error("Failed fetch on cursor $cursor, adding to the queue for retry", ex)
             newCursors.add(cursor)
             return
         }
