@@ -8,7 +8,6 @@ use. The client on the other hand is in early stages, it shouldn't take too long
 
 ## Missing features
 
-- Game history display
 - Player statistics display
 
 ## Extraneous features
