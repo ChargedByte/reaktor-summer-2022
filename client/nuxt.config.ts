@@ -46,7 +46,9 @@ const config: NuxtConfig = {
   },
 
   // Http module configuration: https://http.nuxtjs.org/options
-  http: {},
+  http: {
+    baseURL: "http://localhost:8080",
+  },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},

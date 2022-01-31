@@ -1,5 +1,7 @@
 <template>
-  <div></div>
+  <v-container fluid>
+    <GameHistoryTable />
+  </v-container>
 </template>
 
 <script lang="ts">

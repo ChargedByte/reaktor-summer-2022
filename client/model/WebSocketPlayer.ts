@@ -1,18 +1,18 @@
 import Hand from "~/model/Hand";
 
 class WebSocketPlayer {
-  constructor(name: String) {
+  constructor(name: string) {
     this._name = name;
     this._played = null;
   }
 
-  private _name: String;
+  private _name: string;
 
-  get name(): String {
+  get name(): string {
     return this._name;
   }
 
-  set name(value: String) {
+  set name(value: string) {
     this._name = value;
   }
 

@@ -10,5 +10,7 @@ module.exports = {
     "prettier",
   ],
   plugins: [], // add your custom rules here
-  rules: {},
+  rules: {
+    "vue/valid-v-slot": "off",
+  },
 };

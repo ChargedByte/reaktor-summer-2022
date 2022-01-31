@@ -3,7 +3,7 @@ import WebSocketPlayer from "~/model/WebSocketPlayer";
 
 class WebSocketGame {
   constructor(
-    id: String,
+    id: string,
     type: GameType,
     playerA: WebSocketPlayer,
     playerB: WebSocketPlayer
@@ -15,13 +15,13 @@ class WebSocketGame {
     this._playerB = playerB;
   }
 
-  private _id: String;
+  private _id: string;
 
-  get id(): String {
+  get id(): string {
     return this._id;
   }
 
-  set id(value: String) {
+  set id(value: string) {
     this._id = value;
   }
 
