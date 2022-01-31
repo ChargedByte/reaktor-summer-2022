@@ -4,6 +4,7 @@ import dev.chargedbyte.reaktor_summer_2022.feature.player.Player
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
+import java.time.ZoneOffset
 
 class Game(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, Game>(Games)
@@ -15,5 +16,13 @@ class Game(id: EntityID<String>) : Entity<String>(id) {
     var handB by Games.handB
     var winner by Player optionalReferencedOn Games.winner
 
-    fun toDto() = GameDto(id.value, playedAt, playerA.toDto(), handA, playerB.toDto(), handB, winner?.toDto())
+    fun toDto() = GameDto(
+        id.value,
+        playedAt.toEpochSecond(ZoneOffset.UTC),
+        playerA.toDto(),
+        handA,
+        playerB.toDto(),
+        handB,
+        winner?.toDto()
+    )
 }

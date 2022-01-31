@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class GameDto(
     val id: String?,
-    val playedAt: LocalDateTime,
+    val playedAt: Long,
     val playerA: PlayerDto,
     val handA: Hand,
     val playerB: PlayerDto,
