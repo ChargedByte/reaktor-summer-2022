@@ -69,7 +69,7 @@ and [Vue](https://vuejs.org/) using [Nuxt](https://nuxtjs.org/).
 Libraries used:
 
 - [Vue](https://github.com/vuejs/vue): View layer
-- [Nuxt](https://github.com/nuxt/nuxt.js): Framework for server side rendering of Vue
+- [Nuxt](https://github.com/nuxt/nuxt.js): Framework for Vue
 - [Vuetify](https://github.com/vuetifyjs/vuetify): Vuetify material components
 - [ESLint](https://github.com/eslint/eslint): Linter
 - [Prettier](https://github.com/prettier/prettier): Code formatter
