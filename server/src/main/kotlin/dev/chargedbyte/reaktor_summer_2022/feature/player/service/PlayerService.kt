@@ -6,4 +6,5 @@ interface PlayerService {
     suspend fun findById(id: Int): Player?
     suspend fun findByName(name: String): Player?
     suspend fun findByNameOrCreate(name: String): Player
+    suspend fun searchPlayers(query: String): List<Player?>
 }

@@ -23,11 +23,6 @@ class PlayerRoutes @Inject constructor(
                 if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
             }
 
-            get<PlayerByName> {
-                val player = playerService.findByName(it.name)
-                if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
-            }
-
             get<PlayerStats> {
                 val total = gameService.countGamesByPlayerId(it.id)
                 val wins = gameService.countGamesByPlayerIdAndWon(it.id)
@@ -42,6 +37,17 @@ class PlayerRoutes @Inject constructor(
                 val (games, total) = gameService.findGamesByPlayerIdPaged(request.id, request.size, request.page)
 
                 call.respond(GamesPagedResponse(total, games.map { it.toDto() }))
+            }
+
+            get<SearchPlayers> { request ->
+                println(request)
+                val players = playerService.searchPlayers(request.query)
+                call.respond(players.map { it?.toDto() })
+            }
+
+            get<PlayerByName> {
+                val player = playerService.findByName(it.name)
+                if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
             }
         }
     }

@@ -33,4 +33,18 @@ class PlayerServiceImpl @Inject constructor() : PlayerService {
 
         player
     }
+
+    override suspend fun searchPlayers(query: String) = suspendedDatabaseQuery {
+        val id = query.toIntOrNull()
+        if (id != null) {
+            return@suspendedDatabaseQuery listOf(Player.findById(id))
+        }
+
+        val players = Player.find { Players.name like "$query%" }.toList()
+
+        if (players.isNotEmpty())
+            return@suspendedDatabaseQuery players
+
+        return@suspendedDatabaseQuery Player.find { Players.name like "%$query%" }.toList()
+    }
 }

@@ -5,5 +5,7 @@ object PlayerConstant {
     const val PLAYER_STATS = "/v1/player/{id}/stats"
     const val PLAYER_GAMES = "/v1/player/{id}/games"
 
+    const val SEARCH_PLAYERS = "/v1/player/search/{query}"
+
     const val PLAYER_BY_NAME = "/v1/player/name/{name}"
 }
