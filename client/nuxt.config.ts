@@ -1,6 +1,9 @@
 import { NuxtConfig } from "@nuxt/types";
 
 const config: NuxtConfig = {
+  // Server-side rendering: https://go.nuxtjs.dev/config-ssr
+  ssr: false,
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     titleTemplate: "%s - reaktor-summer-2022",
