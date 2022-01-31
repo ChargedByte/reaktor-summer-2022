@@ -3,7 +3,8 @@
     <span
       >Icons
       <a href="https://icons8.com/icon/16463/rock" target="_blank">Rock</a>,
-      <a href="https://icons8.com/icon/13580/paper" target="_blank">Paper</a>,
+      <a href="https://icons8.com/icon/13580/paper" target="_blank">Paper</a>
+      and
       <a href="https://icons8.com/icon/85716/cutting" target="_blank"
         >Cutting</a
       >
