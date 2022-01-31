@@ -87,9 +87,11 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
         } catch (ex: RedirectResponseException) {
             if (ex.response.status == HttpStatusCode.NotModified) {
                 return
-            } else {
-                throw ex
             }
+
+            logger.error("Error occurred while fetching history", ex)
+            newCursors.add(cursor)
+            return
         }
 
         etags[cursor] = response.etag()
