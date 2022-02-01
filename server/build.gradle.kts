@@ -76,6 +76,10 @@ jib {
         tags = setOf("latest")
     }
 
+    from {
+        image = "eclipse-temurin:11-jre-alpine"
+    }
+
     container {
         ports = listOf("8080/tcp")
     }
