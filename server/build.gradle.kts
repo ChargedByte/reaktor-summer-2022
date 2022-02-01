@@ -72,8 +72,14 @@ kotlin {
 
 jib {
     to {
-        image = "reaktor-summer-2022-server:$version"
-        tags = setOf("latest")
+        image = "reaktor-summer-2022-server"
+
+        val version = version.toString().split(".")
+        val major = version[0]
+        val minor = version[1]
+        val patch = version[2]
+
+        tags = setOf(major, "$major.$minor", "$major.$minor.$patch")
     }
 
     from {
