@@ -1,5 +1,10 @@
 <template>
-  <v-chip :color="color" class="justify-center" label>
+  <v-chip
+    :color="color"
+    class="justify-center"
+    label
+    @click="$router.push({ path: `/player/${player.id}` })"
+  >
     <span>{{ player.name }}</span>
     <v-img :src="src" class="ml-2" height="32" width="32"></v-img>
   </v-chip>
@@ -17,7 +22,7 @@ export default class GameHistoryPlayer extends Vue {
   @Prop({ required: true })
   game!: DisplayGame;
 
-  @Prop({ required: true, default: false })
+  @Prop({ default: false })
   isPlayerA!: boolean;
 
   get player() {

@@ -14,17 +14,17 @@
     </template>
 
     <template #item.playerA="{ item }">
-      <GameHistoryPlayer :game="item" is-player-a />
+      <GameHistoryPlayer :game="item" :is-player-a="true" />
     </template>
 
     <template #item.playerB="{ item }">
-      <GameHistoryPlayer :game="item" />
+      <GameHistoryPlayer :game="item" :is-player-a="false" />
     </template>
   </v-data-table>
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "nuxt-property-decorator";
+import { Component, Prop, Vue, Watch } from "nuxt-property-decorator";
 import { DataOptions } from "vuetify";
 
 import ServerPage from "~/model/ServerPage";
@@ -32,6 +32,9 @@ import DisplayGame from "~/model/DisplayGame";
 
 @Component
 export default class GameHistoryTable extends Vue {
+  @Prop({ default: null })
+  playerId!: number | null;
+
   loading = true;
   totalGames = 0;
   games: DisplayGame[] = [];
@@ -82,9 +85,20 @@ export default class GameHistoryTable extends Vue {
     this.loading = true;
 
     const { page, itemsPerPage } = this.options;
-    const response: ServerPage = await this.$http.$get(
-      `/v1/games?size=${itemsPerPage}&page=${page - 1}`
-    );
+
+    let response: ServerPage;
+
+    if (this.playerId === null) {
+      response = await this.$http.$get(
+        `/v1/games?size=${itemsPerPage}&page=${page - 1}`
+      );
+    } else {
+      response = await this.$http.$get(
+        `/v1/player/${this.playerId}/games?size=${itemsPerPage}&page=${
+          page - 1
+        }`
+      );
+    }
 
     this.totalGames = response.totalPages * itemsPerPage;
     this.games = response.games.flatMap((g) => new DisplayGame(g));

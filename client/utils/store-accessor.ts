@@ -1,7 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable import/no-mutable-exports */
 
 import { Store } from "vuex";
+import { getModule } from "nuxt-property-decorator";
 
-const initializeStores = (store: Store<any>) => {};
+import General from "~/store/modules/general";
 
-export { initializeStores };
+let generalStore: General;
+
+const initializeStores = (store: Store<any>) => {
+  generalStore = getModule(General, store);
+};
+
+export { initializeStores, generalStore };

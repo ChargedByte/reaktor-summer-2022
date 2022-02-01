@@ -1,5 +1,13 @@
 <template>
-  <v-navigation-drawer app clipped permanent right width="425">
+  <v-navigation-drawer
+    v-model="drawer"
+    :temporary="$vuetify.breakpoint.lgAndDown"
+    absolute
+    app
+    clipped
+    right
+    width="425"
+  >
     <v-list>
       <v-list-item v-for="game in games" :key="game.id">
         <LiveGame :game="game" />
@@ -16,11 +24,20 @@ import WebSocketPlayer from "~/model/WebSocketPlayer";
 import GameType from "~/model/GameType";
 import Hand from "~/model/Hand";
 
+import { generalStore } from "~/utils/store-accessor";
+
 @Component
 export default class LiveGameSidebar extends Vue {
   games: WebSocketGame[] = [];
-
   ws: WebSocket | undefined;
+
+  get drawer() {
+    return generalStore.liveGameDrawer;
+  }
+
+  set drawer(value: boolean) {
+    generalStore.setLiveGameDrawer(value);
+  }
 
   created() {
     if (typeof this.ws === "undefined") {
