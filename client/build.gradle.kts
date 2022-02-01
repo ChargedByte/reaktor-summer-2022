@@ -7,6 +7,7 @@ plugins {
 
 node {
     download.set(true)
+    version.set("16.13.2")
 }
 
 tasks {
@@ -17,12 +18,8 @@ tasks {
         delete("${projectDir}/dist")
     }
 
-    register<YarnTask>("generate") {
+    register<YarnTask>("build") {
         dependsOn(withType<YarnInstallTask>())
-        args.set(listOf("generate", "--fail-on-error"))
-    }
-
-    register("build") {
-        dependsOn(named("generate"))
+        args.set(listOf("build"))
     }
 }
