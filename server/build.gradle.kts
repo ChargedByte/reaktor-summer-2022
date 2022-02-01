@@ -11,6 +11,8 @@ val postgreSqlVersion: String by project
 plugins {
     application
     kotlin("jvm")
+    id("com.github.johnrengelman.shadow")
+    id("com.google.cloud.tools.jib")
 }
 
 group = "dev.chargedbyte"
@@ -54,6 +56,10 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
 }
 
+tasks.withType<Jar> {
+    archiveBaseName.set("reaktor-summer-2022-server")
+}
+
 application {
     mainClass.set("dev.chargedbyte.reaktor_summer_2022.ApplicationKt")
 }
@@ -61,5 +67,16 @@ application {
 kotlin {
     jvmToolchain {
         (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+jib {
+    to {
+        image = "reaktor-summer-2022-server:$version"
+        tags = setOf("latest")
+    }
+
+    container {
+        ports = listOf("8080/tcp")
     }
 }
