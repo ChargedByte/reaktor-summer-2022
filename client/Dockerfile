@@ -15,7 +15,7 @@ RUN yarn build
 
 FROM base AS deploy
 
-EXPOSE 3000
+EXPOSE 3000/tcp
 
 ENV NODE_ENV=production
 
