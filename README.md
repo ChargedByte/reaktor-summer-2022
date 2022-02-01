@@ -3,13 +3,6 @@
 My solution to Reaktor's Trainee Developer, summer
 2022 [pre-assignment](https://web.archive.org/web/20220109201917/https://www.reaktor.com/assignment-2022-developers/).
 
-At the moment this application is incomplete. The server is working and apart from adding some routes should be ready to
-use. The client on the other hand is in early stages, it shouldn't take too long to get it working though.
-
-## Missing features
-
-- Player statistics display
-
 ## Extraneous features
 
 - [ ] Testing
