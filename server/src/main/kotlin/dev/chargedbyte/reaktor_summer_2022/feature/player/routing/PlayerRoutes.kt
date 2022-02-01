@@ -4,6 +4,7 @@ import dev.chargedbyte.reaktor_summer_2022.feature.game.routing.GamesPagedRespon
 import dev.chargedbyte.reaktor_summer_2022.feature.game.service.GameService
 import dev.chargedbyte.reaktor_summer_2022.feature.player.PlayerStatsDto
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
+import dev.chargedbyte.reaktor_summer_2022.utils.suspendedDatabaseQuery
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.locations.*
@@ -36,11 +37,10 @@ class PlayerRoutes @Inject constructor(
             get<PlayerGamesPaged> { request ->
                 val (games, total) = gameService.findGamesByPlayerIdPaged(request.id, request.size, request.page)
 
-                call.respond(GamesPagedResponse(total, games.map { it.toDto() }))
+                call.respond(GamesPagedResponse(total, suspendedDatabaseQuery { games.map { it.toDto() } }))
             }
 
             get<SearchPlayers> { request ->
-                println(request)
                 val players = playerService.searchPlayers(request.query)
                 call.respond(players.map { it?.toDto() })
             }
