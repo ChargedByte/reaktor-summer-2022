@@ -1,26 +1,18 @@
-FROM node:16-alpine AS base
+FROM node:16-alpine
 
 WORKDIR /app
 
 RUN apk update && apk upgrade
-
 RUN npm i -g --force npm@latest yarn@latest
-
-FROM base AS build
 
 COPY . .
 
 RUN yarn install
 RUN yarn build
 
-FROM base AS deploy
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
 EXPOSE 3000/tcp
-
-ENV NODE_ENV=production
-
-COPY --from=build ["/app/.nuxt", "/app/dist", "/app/nuxt.config.ts", "/app/package.json", "/app/yarn.lock", "./"]
-
-RUN yarn install --production
 
 CMD ["yarn", "start"]
