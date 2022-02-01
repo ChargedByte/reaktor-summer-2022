@@ -35,6 +35,11 @@ class PlayerRoutes @Inject constructor(
             }
 
             get<PlayerGamesPaged> { request ->
+                if (request.size > 150) {
+                    call.respond(HttpStatusCode.BadRequest, "Page size cannot exceed 150")
+                    return@get
+                }
+
                 val (games, total) = gameService.findGamesByPlayerIdPaged(request.id, request.size, request.page)
 
                 call.respond(GamesPagedResponse(total, suspendedDatabaseQuery { games.map { it.toDto() } }))
