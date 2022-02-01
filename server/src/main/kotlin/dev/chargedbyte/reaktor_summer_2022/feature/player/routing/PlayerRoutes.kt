@@ -29,9 +29,9 @@ class PlayerRoutes @Inject constructor(
                 val wins = gameService.countGamesByPlayerIdAndWon(it.id)
                 val mostPlayed = gameService.mostPlayedHandByPlayerId(it.id)
 
-                val winRatio = (wins / total * 1.0)
+                val winRatio = (wins.toDouble() / total.toDouble())
 
-                PlayerStatsDto(wins, total, winRatio, mostPlayed)
+                call.respond(PlayerStatsDto(wins, total, winRatio, mostPlayed))
             }
 
             get<PlayerGamesPaged> { request ->
