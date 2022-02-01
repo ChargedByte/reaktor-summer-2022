@@ -3,13 +3,6 @@
 My solution to Reaktor's Trainee Developer, summer
 2022 [pre-assignment](https://web.archive.org/web/20220109201917/https://www.reaktor.com/assignment-2022-developers/).
 
-## Extraneous features
-
-- [ ] Testing
-- [ ] Continuous integration
-- [ ] Containerization (Docker/OCI), independently for server and client
-- [ ] Store ETags between restarts
-
 ## Server
 
 The server works as a "cache" for the historical game data and serves the data via a REST API. The server is also
