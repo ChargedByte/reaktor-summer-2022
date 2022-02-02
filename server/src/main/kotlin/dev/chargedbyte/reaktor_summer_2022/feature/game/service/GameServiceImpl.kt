@@ -22,6 +22,9 @@ val saveAllMutex = Mutex()
 class GameServiceImpl @Inject constructor(private val playerService: PlayerService) : GameService {
     private val logger = LoggerFactory.getLogger(GameServiceImpl::class.java)
 
+    override suspend fun findAllGameIds() =
+        suspendedDatabaseQuery { Games.slice(Games.id).selectAll().map { it[Games.id].value } }
+
     override suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long> = suspendedDatabaseQuery {
         val totalPages = (count() / size) + 1
 
@@ -58,40 +61,36 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
     override suspend fun saveAll(cursor: String, fetchDuration: Duration, games: List<ApiGame>) =
         saveAllMutex.withLock {
             suspendedDatabaseQuery {
-                var count = 0
+                val gameIds = findAllGameIds()
+
+                val processGames = games.filter { it.gameId !in gameIds }
 
                 val startTime = Instant.now()
 
-                games.forEach {
-                    if (!existsById(it.gameId)) {
-                        val playerA = playerService.findByNameOrCreate(it.playerA.name)
-                        val playerB = playerService.findByNameOrCreate(it.playerB.name)
+                processGames.forEach {
+                    val playerA = playerService.findByNameOrCreate(it.playerA.name)
+                    val playerB = playerService.findByNameOrCreate(it.playerB.name)
 
-                        val handA = it.playerA.played
-                        val handB = it.playerB.played
+                    val handA = it.playerA.played
+                    val handB = it.playerB.played
 
-                        val winner = if (handA.beats(handB)) playerA else if (handB.beats(handA)) playerB else null
+                    val winner = if (handA.beats(handB)) playerA else if (handB.beats(handA)) playerB else null
 
-                        val playedAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.t), ZoneId.systemDefault())
+                    val playedAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.t), ZoneId.systemDefault())
 
-                        Game.new(it.gameId) {
-                            this.playedAt = playedAt
-                            this.playerA = playerA
-                            this.handA = handA
-                            this.playerB = playerB
-                            this.handB = handB
-                            this.winner = winner
-                        }
-
-                        count++
+                    Game.new(it.gameId) {
+                        this.playedAt = playedAt
+                        this.playerA = playerA
+                        this.handA = handA
+                        this.playerB = playerB
+                        this.handB = handB
+                        this.winner = winner
                     }
                 }
 
                 val duration = Duration.between(startTime, Instant.now())
 
-                logger.debug("Inserted $count games for cursor $cursor in $duration")
-
-                logger.info("Saved $count new games from cursor $cursor in ${fetchDuration + duration}")
+                logger.info("Saved ${processGames.size} new games from cursor $cursor in ${fetchDuration + duration}")
             }
         }
 
