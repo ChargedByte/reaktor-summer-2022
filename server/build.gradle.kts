@@ -87,6 +87,6 @@ jib {
     }
 
     container {
-        ports = listOf("8080/tcp")
+        ports = listOf("8080")
     }
 }
