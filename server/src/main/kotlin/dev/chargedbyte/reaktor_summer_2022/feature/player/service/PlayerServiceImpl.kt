@@ -25,8 +25,6 @@ class PlayerServiceImpl @Inject constructor() : PlayerService {
             player = newSuspendedTransaction {
                 Player.new { this.name = name }
             }
-
-            logger.debug("Created a new player: ${player.name}")
         }
 
         player
