@@ -17,7 +17,7 @@ fun Application.configureMonitoring() {
     install(CallLogging)
 
     routing {
-        get("/metrics-micrometer") {
+        get("/metrics/micrometer") {
             call.respond(appMicrometerRegistry.scrape())
         }
     }
