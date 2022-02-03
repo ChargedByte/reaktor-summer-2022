@@ -6,10 +6,10 @@ import dev.chargedbyte.reaktor_summer_2022.feature.game.Games
 import dev.chargedbyte.reaktor_summer_2022.feature.player.Players
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
 import dev.chargedbyte.reaktor_summer_2022.model.Hand
-import dev.chargedbyte.reaktor_summer_2022.utils.suspendedDatabaseQuery
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
@@ -23,90 +23,90 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
     private val logger = LoggerFactory.getLogger(GameServiceImpl::class.java)
 
     override suspend fun findAllGameIds() =
-        suspendedDatabaseQuery { Games.slice(Games.id).selectAll().map { it[Games.id].value } }
+        newSuspendedTransaction { Games.slice(Games.id).selectAll().map { it[Games.id].value } }
 
-    override suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long> = suspendedDatabaseQuery {
+    override suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long> {
         val totalPages = (count() / size) + 1
 
         val pA = Players.alias("pA")
         val pB = Players.alias("pB")
         val w = Players.alias("w")
 
-        val games =
+        val games = newSuspendedTransaction {
             Games.innerJoin(pA, { playerA }, { pA[Players.id] }).innerJoin(pB, { Games.playerB }, { pB[Players.id] })
                 .innerJoin(w, { Games.winner }, { w[Players.id] }).selectAll().limit(size, size * page)
                 .orderBy(Games.playedAt).map { Game.wrapRow(it) }.toList()
+        }
 
-        Pair(games, totalPages)
+        return Pair(games, totalPages)
     }
 
-    override suspend fun findGamesByPlayerIdPaged(playerId: Int, size: Int, page: Long): Pair<List<Game>, Long> =
-        suspendedDatabaseQuery {
-            val totalPages = (countGamesByPlayerId(playerId) / size) + 1
+    override suspend fun findGamesByPlayerIdPaged(playerId: Int, size: Int, page: Long): Pair<List<Game>, Long> {
+        val totalPages = (countGamesByPlayerId(playerId) / size) + 1
 
-            val pA = Players.alias("pA")
-            val pB = Players.alias("pB")
-            val w = Players.alias("w")
+        val pA = Players.alias("pA")
+        val pB = Players.alias("pB")
+        val w = Players.alias("w")
 
-            val games =
-                Games.innerJoin(pA, { playerA }, { pA[Players.id] })
-                    .innerJoin(pB, { Games.playerB }, { pB[Players.id] })
-                    .innerJoin(w, { Games.winner }, { w[Players.id] })
-                    .select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.limit(size, size * page)
-                    .orderBy(Games.playedAt).map { Game.wrapRow(it) }.toList()
-
-            Pair(games, totalPages)
+        val games = newSuspendedTransaction {
+            Games.innerJoin(pA, { playerA }, { pA[Players.id] }).innerJoin(pB, { Games.playerB }, { pB[Players.id] })
+                .innerJoin(w, { Games.winner }, { w[Players.id] })
+                .select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.limit(size, size * page)
+                .orderBy(Games.playedAt).map { Game.wrapRow(it) }.toList()
         }
+
+        return Pair(games, totalPages)
+    }
 
     override suspend fun saveAll(cursor: String, fetchDuration: Duration, games: List<ApiGame>) =
         saveAllMutex.withLock {
-            suspendedDatabaseQuery {
-                val gameIds = findAllGameIds()
+            val gameIds = findAllGameIds()
 
-                val processGames = games.filter { it.gameId !in gameIds }
+            val processGames = games.filter { it.gameId !in gameIds }
 
-                val startTime = Instant.now()
+            val startTime = Instant.now()
 
-                processGames.forEach {
-                    val playerA = playerService.findByNameOrCreate(it.playerA.name)
-                    val playerB = playerService.findByNameOrCreate(it.playerB.name)
+            val players = processGames.flatMap { listOf(it.playerA.name, it.playerB.name) }.distinct()
+                .map { playerService.findByNameOrCreate(it) }
 
-                    val handA = it.playerA.played
-                    val handB = it.playerB.played
+            newSuspendedTransaction {
+                Games.batchInsert(processGames) { game ->
+                    val playerA = players.first { it.name == game.playerA.name }
+                    val playerB = players.first { it.name == game.playerB.name }
+
+                    val handA = game.playerA.played
+                    val handB = game.playerB.played
 
                     val winner = if (handA.beats(handB)) playerA else if (handB.beats(handA)) playerB else null
 
-                    val playedAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.t), ZoneId.systemDefault())
-
-                    Game.new(it.gameId) {
-                        this.playedAt = playedAt
-                        this.playerA = playerA
-                        this.handA = handA
-                        this.playerB = playerB
-                        this.handB = handB
-                        this.winner = winner
-                    }
+                    this[Games.id] = game.gameId
+                    this[Games.playedAt] = LocalDateTime.ofInstant(Instant.ofEpochMilli(game.t), ZoneId.systemDefault())
+                    this[Games.playerA] = playerA.id
+                    this[Games.handA] = handA
+                    this[Games.playerB] = playerB.id
+                    this[Games.handB] = handB
+                    this[Games.winner] = winner?.id
                 }
-
-                val duration = Duration.between(startTime, Instant.now())
-
-                logger.info("Saved ${processGames.size} new games from cursor $cursor in ${fetchDuration + duration}")
             }
+
+            val duration = Duration.between(startTime, Instant.now())
+
+            logger.info("Saved ${processGames.size} new games from cursor $cursor in ${fetchDuration + duration}")
         }
 
-    override suspend fun findById(id: String) = suspendedDatabaseQuery { Game.findById(id) }
+    override suspend fun findById(id: String) = newSuspendedTransaction { Game.findById(id) }
 
     override suspend fun existsById(id: String) = findById(id) != null
 
-    override suspend fun count() = suspendedDatabaseQuery { Game.count() }
+    override suspend fun count() = newSuspendedTransaction { Game.count() }
 
     override suspend fun countGamesByPlayerId(playerId: Int) =
-        suspendedDatabaseQuery { Games.select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.count() }
+        newSuspendedTransaction { Games.select { (Games.playerA eq playerId) or (Games.playerB eq playerId) }.count() }
 
     override suspend fun countGamesByPlayerIdAndWon(playerId: Int) =
-        suspendedDatabaseQuery { Games.select { Games.winner eq playerId }.count() }
+        newSuspendedTransaction { Games.select { Games.winner eq playerId }.count() }
 
-    override suspend fun countGamesByPlayerIdWhereHandWasPlayed(playerId: Int, hand: Hand) = suspendedDatabaseQuery {
+    override suspend fun countGamesByPlayerIdWhereHandWasPlayed(playerId: Int, hand: Hand) = newSuspendedTransaction {
         Games.select { ((Games.playerA eq playerId) and (Games.handA eq hand)) or ((Games.playerB eq playerId) and (Games.handB eq hand)) }
             .count()
     }
