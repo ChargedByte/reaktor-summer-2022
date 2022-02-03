@@ -10,10 +10,10 @@ import io.ktor.application.*
 import io.ktor.server.netty.*
 
 fun Application.module() {
-    configureHTTP()
     configureRouting()
     configureSerialization()
     configureMonitoring()
+    configureHTTP()
 
     Guice.createInjector(MainModule(this))
 }
