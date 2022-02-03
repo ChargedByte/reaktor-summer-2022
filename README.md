@@ -6,13 +6,10 @@ My solution to Reaktor's Trainee Developer, summer
 ## Server
 
 The server works as a "cache" for the historical game data and serves the data via a REST API. The server is also
-responsible for fetching the "massive" (~900k items at the time of writing) dataset from the Reaktor's API, and storing
-it in a relation database.
+responsible for fetching the "massive" (~1M items at the time of writing) dataset from the Reaktor's API, and storing it
+in a relation database.
 
-The process of fetching the data from the Reaktor's API is relatively quick, it takes ~4 seconds to process a full page
-of items. It's possible it could be sped up more. I'm fairly certain it's bottlenecked by the database connection and
-better design there could help. Though once the whole dataset has been pulled (~1.5 hrs at the time of writing) it's
-much faster to only add the new games to the database.
+The process of fetching the data from the Reaktor's API is quite quick, it takes about a second to fetch an entire page.
 
 The server is written in [Kotlin](https://kotlinlang.org/).
 
