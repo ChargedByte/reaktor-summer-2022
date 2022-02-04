@@ -30,12 +30,14 @@ dependencies {
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
+    implementation("io.ktor:ktor-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-host-common:$ktorVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
+
     implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
 
     implementation("io.ktor:ktor-client-core:$ktorVersion")

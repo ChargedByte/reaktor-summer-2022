@@ -2,14 +2,12 @@ package dev.chargedbyte.reaktor_summer_2022.config.factory
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.config.*
+import dev.chargedbyte.reaktor_summer_2022.config.AppConfig
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 import javax.sql.DataSource
 
-class DatabaseFactory(config: ApplicationConfig) {
-    private val databaseUrl = config.property("reaktor_summer_2022.database.url").getString()
-
+class DatabaseFactory(private val config: AppConfig) {
     fun connectAndMigrate(): Database {
         val pool = createPool()
         val database = Database.connect(pool)
@@ -31,7 +29,7 @@ class DatabaseFactory(config: ApplicationConfig) {
 
     private fun createPool(): HikariDataSource {
         val hikariConfig = HikariConfig().apply {
-            jdbcUrl = databaseUrl
+            jdbcUrl = config.custom.database.url
             isAutoCommit = false
             validate()
         }

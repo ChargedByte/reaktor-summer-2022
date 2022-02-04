@@ -60,7 +60,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
                         val reset = Instant.ofEpochSecond(rateLimitReset.get())
                         val duration = Duration.between(Instant.now(), reset)
 
-                        logger.info("Rate limited, waiting for $duration before continuing")
+                        logger.warn("Rate limited, waiting for $duration before continuing")
 
                         delay(duration.toMillis() + 1)
 

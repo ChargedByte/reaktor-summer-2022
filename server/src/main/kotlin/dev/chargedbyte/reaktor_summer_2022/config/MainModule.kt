@@ -16,16 +16,17 @@ import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import org.jetbrains.exposed.sql.Database
 
-class MainModule(private val application: Application) : AbstractModule() {
+class MainModule(private val application: Application, private val config: AppConfig) : AbstractModule() {
     override fun configure() {
+        bind(AppConfig::class.java).toInstance(config)
         bind(Application::class.java).toInstance(application)
 
-        val database = DatabaseFactory(application.environment.config).connectAndMigrate()
+        val database = DatabaseFactory(config).connectAndMigrate()
         bind(Database::class.java).toInstance(database)
 
         val client = HttpClient(CIO) {
             install(UserAgent) {
-                agent = "reaktor-summer-2022/0.0.1"
+                agent = "reaktor-summer-2022/1.0.0"
             }
             install(JsonFeature) {
                 serializer = JacksonSerializer()
