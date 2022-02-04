@@ -15,7 +15,6 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import org.jetbrains.exposed.sql.Database
-import kotlin.system.exitProcess
 
 class MainModule(private val application: Application, private val config: AppConfig) : AbstractModule() {
     override fun configure() {

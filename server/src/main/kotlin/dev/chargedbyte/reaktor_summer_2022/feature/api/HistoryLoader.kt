@@ -109,7 +109,11 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             }
         }.onFailure {
             if (it is RedirectResponseException && it.response.status == HttpStatusCode.NotModified) {
-                logger.debug("Skipping $cursor, not modified")
+                logger.info(
+                    "Skipping $cursor, not modified, took ${
+                        Duration.between(startTime, Instant.now()).toMillis()
+                    }ms"
+                )
                 return
             }
         }.getOrThrow()
