@@ -1,10 +1,11 @@
 package dev.chargedbyte.reaktor_summer_2022.plugins
 
+import dev.chargedbyte.reaktor_summer_2022.config.AppConfig
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 
-fun Application.configureHTTP() {
+fun Application.configureHTTP(config: AppConfig) {
     install(DefaultHeaders) {
         header(HttpHeaders.Server, "Ktor/1.6.7")
     }
@@ -28,4 +29,10 @@ fun Application.configureHTTP() {
             minimumSize(1024)
         }
     }
+
+    if (config.custom.proxy.installForwarded)
+        install(ForwardedHeaderSupport)
+
+    if (config.custom.proxy.installXForwarded)
+        install(XForwardedHeaderSupport)
 }

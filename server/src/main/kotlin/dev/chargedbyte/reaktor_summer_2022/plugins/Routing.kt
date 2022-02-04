@@ -16,6 +16,19 @@ fun Application.configureRouting() {
         exception<AuthorizationException> {
             call.respond(HttpStatusCode.Forbidden)
         }
+
+        status(HttpStatusCode.Forbidden) {
+            call.respond(HttpStatusCode.Forbidden, HttpStatusCode.Forbidden.description)
+        }
+        status(HttpStatusCode.InternalServerError) {
+            call.respond(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.description)
+        }
+        status(HttpStatusCode.NotFound) {
+            call.respond(HttpStatusCode.NotFound, HttpStatusCode.NotFound.description)
+        }
+        status(HttpStatusCode.Unauthorized) {
+            call.respond(HttpStatusCode.Unauthorized, HttpStatusCode.Unauthorized.description)
+        }
     }
 }
 

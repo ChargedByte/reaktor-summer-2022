@@ -20,7 +20,7 @@ class PlayerRoutes @Inject constructor(
 ) {
     init {
         application.routing {
-            authenticate {
+            authenticate("api") {
                 get<Player> {
                     val player = playerService.findById(it.id)
                     if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)

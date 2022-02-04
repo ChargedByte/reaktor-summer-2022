@@ -15,7 +15,7 @@ import javax.inject.Inject
 class GameRoutes @Inject constructor(application: Application, gameService: GameService) {
     init {
         application.routing {
-            authenticate {
+            authenticate("api") {
                 get<GamesPaged> { request ->
                     if (request.size > 150) {
                         call.respond(HttpStatusCode.BadRequest, "Page size cannot exceed 150")

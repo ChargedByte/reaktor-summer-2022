@@ -10,11 +10,11 @@ import io.ktor.server.netty.*
 fun Application.module() {
     val config = AppConfig(this.environment.config)
 
-    configureRouting()
     configureSecurity(config)
+    configureHTTP(config)
+    configureRouting()
     configureSerialization()
-    configureMonitoring()
-    configureHTTP()
+    configureMonitoring(config)
 
     Guice.createInjector(MainModule(this, config))
 }
