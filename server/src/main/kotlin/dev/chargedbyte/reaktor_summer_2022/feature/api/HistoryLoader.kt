@@ -73,7 +73,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             cursors.forEach {
                 if (loaderParentJob.isCancelled) return
 
-                if (rateLimitRemaining.get() == 0) {
+                if (rateLimitRemaining.decrementAndGet() == 0) {
                     val duration = Duration.between(rateLimitReset.get(), Instant.now())
 
                     logger.warn("Rate limit reached, waiting for $duration")
@@ -84,8 +84,6 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
                 }
 
                 coroutineScope { jobs.add(launch { load(it) }) }
-
-                rateLimitRemaining.decrementAndGet()
 
                 // This should keep us from getting rate limited, but there is always the rate limit logic in case this doesn't work
                 delay(150)
