@@ -83,7 +83,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
     private suspend fun load(cursor: String) {
         if (loaderParentJob.isCancelled) return
 
-        // If we are near the rate limit reset time, lets slow down a bit. We really don't want to hit the rate limit.
+        // If we are near the rate limit, lets slow down a bit. We really don't want to hit the rate limit.
         if (rateLimitRemaining.get() < 100)
             delay(125)
 
@@ -105,7 +105,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             }
         }.onFailure {
             if (it is RedirectResponseException && it.response.status == HttpStatusCode.NotModified) {
-                logger.info(
+                logger.debug(
                     "Skipping $cursor, not modified, took ${
                         Duration.between(startTime, Instant.now()).toMillis()
                     }ms"
