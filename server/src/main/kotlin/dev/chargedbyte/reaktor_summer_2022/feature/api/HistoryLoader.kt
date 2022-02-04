@@ -88,7 +88,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
                 rateLimitRemaining.decrementAndGet()
 
                 // This should keep us from getting rate limited, but there is always the rate limit logic in case this doesn't work
-                delay(125)
+                delay(150)
             }
 
             if (firstRun)
