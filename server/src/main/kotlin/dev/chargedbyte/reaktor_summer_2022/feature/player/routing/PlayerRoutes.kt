@@ -5,6 +5,7 @@ import dev.chargedbyte.reaktor_summer_2022.feature.game.service.GameService
 import dev.chargedbyte.reaktor_summer_2022.feature.player.PlayerStatsDto
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
 import io.ktor.application.*
+import io.ktor.auth.*
 import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.response.*
@@ -19,40 +20,42 @@ class PlayerRoutes @Inject constructor(
 ) {
     init {
         application.routing {
-            get<Player> {
-                val player = playerService.findById(it.id)
-                if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
-            }
-
-            get<PlayerStats> {
-                val total = gameService.countGamesByPlayerId(it.id)
-                val wins = gameService.countGamesByPlayerIdAndWon(it.id)
-                val mostPlayed = gameService.mostPlayedHandByPlayerId(it.id)
-
-                val winRatio = (wins.toDouble() / total.toDouble())
-
-                call.respond(PlayerStatsDto(wins, total, winRatio, mostPlayed))
-            }
-
-            get<PlayerGamesPaged> { request ->
-                if (request.size > 150) {
-                    call.respond(HttpStatusCode.BadRequest, "Page size cannot exceed 150")
-                    return@get
+            authenticate {
+                get<Player> {
+                    val player = playerService.findById(it.id)
+                    if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
                 }
 
-                val (games, total) = gameService.findGamesByPlayerIdPaged(request.id, request.size, request.page)
+                get<PlayerStats> {
+                    val total = gameService.countGamesByPlayerId(it.id)
+                    val wins = gameService.countGamesByPlayerIdAndWon(it.id)
+                    val mostPlayed = gameService.mostPlayedHandByPlayerId(it.id)
 
-                call.respond(GamesPagedResponse(total, newSuspendedTransaction { games.map { it.toDto() } }))
-            }
+                    val winRatio = (wins.toDouble() / total.toDouble())
 
-            get<SearchPlayers> { request ->
-                val players = playerService.searchPlayers(request.query)
-                call.respond(players.map { it?.toDto() })
-            }
+                    call.respond(PlayerStatsDto(wins, total, winRatio, mostPlayed))
+                }
 
-            get<PlayerByName> {
-                val player = playerService.findByName(it.name)
-                if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
+                get<PlayerGamesPaged> { request ->
+                    if (request.size > 150) {
+                        call.respond(HttpStatusCode.BadRequest, "Page size cannot exceed 150")
+                        return@get
+                    }
+
+                    val (games, total) = gameService.findGamesByPlayerIdPaged(request.id, request.size, request.page)
+
+                    call.respond(GamesPagedResponse(total, newSuspendedTransaction { games.map { it.toDto() } }))
+                }
+
+                get<SearchPlayers> { request ->
+                    val players = playerService.searchPlayers(request.query)
+                    call.respond(players.map { it?.toDto() })
+                }
+
+                get<PlayerByName> {
+                    val player = playerService.findByName(it.name)
+                    if (player != null) call.respond(player.toDto()) else call.respond(HttpStatusCode.NotFound)
+                }
             }
         }
     }
