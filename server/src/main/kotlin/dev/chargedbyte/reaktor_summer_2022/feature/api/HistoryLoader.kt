@@ -20,7 +20,6 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 class HistoryLoader @Inject constructor(private val client: HttpClient, private val gameService: GameService) {
@@ -29,7 +28,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
     private val loaderParentJob = Job()
 
     private val rateLimitRemaining = AtomicInteger(500)
-    private val rateLimitReset = AtomicReference(Instant.now().plus(1, ChronoUnit.MINUTES))
+    private var rateLimitReset = Instant.now().plus(1, ChronoUnit.MINUTES)
 
     private val etags = Collections.synchronizedMap(mutableMapOf<String, String?>())
 
@@ -73,20 +72,7 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             cursors.forEach {
                 if (loaderParentJob.isCancelled) return
 
-                if (rateLimitRemaining.decrementAndGet() == 0) {
-                    val duration = Duration.between(rateLimitReset.get(), Instant.now())
-
-                    logger.warn("Rate limit reached, waiting for $duration")
-
-                    delay(duration.toMillis() + 1)
-
-                    rateLimitRemaining.set(500)
-                }
-
                 coroutineScope { jobs.add(launch { load(it) }) }
-
-                // This should keep us from getting rate limited, but there is always the rate limit logic in case this doesn't work
-                delay(150)
             }
 
             if (firstRun)
@@ -96,6 +82,18 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
 
     private suspend fun load(cursor: String) {
         if (loaderParentJob.isCancelled) return
+
+        // If we are near the rate limit reset time, lets slow down a bit. We really don't want to hit the rate limit.
+        if (rateLimitRemaining.get() < 100)
+            delay(125)
+
+        if (rateLimitRemaining.get() == 0) {
+            val duration = Duration.between(Instant.now(), rateLimitReset)
+
+            logger.warn("Rate limit reached, waiting for $duration")
+
+            delay(duration.toMillis() + 1)
+        }
 
         val startTime = Instant.now()
 
@@ -116,13 +114,17 @@ class HistoryLoader @Inject constructor(private val client: HttpClient, private 
             }
         }.getOrThrow()
 
-        etags[cursor] = response.etag()
-
         if (response.headers["X-Ratelimit-Reset"] != null) {
             val reset = Instant.ofEpochSecond(response.headers["X-Ratelimit-Reset"]!!.toLong())
-            if (reset != rateLimitReset.get())
-                rateLimitReset.set(reset)
+            if (reset != rateLimitReset)
+                rateLimitReset = reset
         }
+
+        if (response.headers["X-Ratelimit-Remaining"] != null) {
+            rateLimitRemaining.set(response.headers["X-Ratelimit-Remaining"]!!.toInt())
+        }
+
+        etags[cursor] = response.etag()
 
         val history = response.receive<History>()
 
