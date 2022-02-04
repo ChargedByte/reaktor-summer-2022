@@ -6,7 +6,7 @@ import dev.chargedbyte.reaktor_summer_2022.model.Hand
 import java.time.Duration
 
 interface GameService {
-    suspend fun findAllGameIds(): List<String>
+    suspend fun findAllGameIds(): HashSet<String>
     suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long>
     suspend fun findGamesByPlayerIdPaged(playerId: Int, size: Int, page: Long): Pair<List<Game>, Long>
     suspend fun saveAll(cursor: String, fetchDuration: Duration, games: List<ApiGame>)

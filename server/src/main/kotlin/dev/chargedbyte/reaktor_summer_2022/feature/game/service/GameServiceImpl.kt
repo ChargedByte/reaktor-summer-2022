@@ -23,7 +23,7 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
     private val logger = LoggerFactory.getLogger(GameServiceImpl::class.java)
 
     override suspend fun findAllGameIds() =
-        newSuspendedTransaction { Games.slice(Games.id).selectAll().map { it[Games.id].value } }
+        newSuspendedTransaction { Games.slice(Games.id).selectAll().map { it[Games.id].value }.toHashSet() }
 
     override suspend fun findAllPaged(size: Int, page: Long): Pair<List<Game>, Long> {
         val totalPages = (count() / size) + 1
@@ -60,11 +60,11 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
 
     override suspend fun saveAll(cursor: String, fetchDuration: Duration, games: List<ApiGame>) =
         saveAllMutex.withLock {
+            val startTime = Instant.now()
+
             val gameIds = findAllGameIds()
 
             val processGames = games.filter { it.gameId !in gameIds }
-
-            val startTime = Instant.now()
 
             val players = processGames.flatMap { listOf(it.playerA.name, it.playerB.name) }.distinct()
                 .map { playerService.findByNameOrCreate(it) }
@@ -91,7 +91,12 @@ class GameServiceImpl @Inject constructor(private val playerService: PlayerServi
 
             val duration = Duration.between(startTime, Instant.now())
 
-            logger.info("Saved ${processGames.size} new games from cursor $cursor in ${fetchDuration + duration}")
+            if (processGames.isNotEmpty())
+                logger.debug("Added ${processGames.size} games from $cursor in ${duration.toMillis()}ms")
+            else
+                logger.debug("No new games from $cursor in ${duration.toMillis()}ms")
+
+            logger.info("Processed $cursor in ${(fetchDuration + duration).toMillis()}ms")
         }
 
     override suspend fun findById(id: String) = newSuspendedTransaction { Game.findById(id) }
