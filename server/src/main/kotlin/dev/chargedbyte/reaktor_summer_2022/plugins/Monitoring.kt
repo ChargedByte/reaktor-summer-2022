@@ -11,7 +11,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 
 fun Application.configureMonitoring(config: AppConfig) {
-    if (!config.custom.metrics.disable) {
+    if (config.custom.metrics.enable) {
         val appMicrometerRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
         install(MicrometerMetrics) {
             registry = appMicrometerRegistry

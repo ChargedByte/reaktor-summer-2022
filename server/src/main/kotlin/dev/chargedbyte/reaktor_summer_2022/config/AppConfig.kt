@@ -34,7 +34,7 @@ class AppConfig(root: ApplicationConfig) {
         }
 
         class MetricsConfig(parent: ApplicationConfig) {
-            val disable = parent.propertyOrNull("disable")?.getString()?.toBoolean() ?: false
+            val enable = parent.propertyOrNull("enable")?.getString()?.toBoolean() ?: false
         }
 
         class ProxyConfig(parent: ApplicationConfig) {
