@@ -11,7 +11,7 @@ import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerService
 import dev.chargedbyte.reaktor_summer_2022.feature.player.service.PlayerServiceImpl
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.java.*
 import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import org.jetbrains.exposed.sql.Database
@@ -24,12 +24,12 @@ class MainModule(private val application: Application, private val config: AppCo
         val database = DatabaseFactory(config).connectAndMigrate()
         bind(Database::class.java).toInstance(database)
 
-        val client = HttpClient(CIO) {
-            install(UserAgent) {
-                agent = "reaktor-summer-2022/1.0.0"
-            }
+        val client = HttpClient(Java) {
             install(JsonFeature) {
                 serializer = JacksonSerializer()
+            }
+            install(UserAgent) {
+                agent = "reaktor-summer-2022/1.0.0"
             }
         }
         bind(HttpClient::class.java).toInstance(client)

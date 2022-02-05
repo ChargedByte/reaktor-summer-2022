@@ -42,7 +42,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
 
     implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-java:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
 
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
