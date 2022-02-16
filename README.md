@@ -12,7 +12,7 @@ it in a relation database.
 The process of fetching the data from the Reaktor's API is relatively quick, it takes ~4 seconds to process a full page
 of items. It's possible it could be sped up more. I'm fairly certain it's bottlenecked by the database connection and
 better design there could help. Though once the whole dataset has been pulled (~1.5 hrs at the time of writing) it's
-much faster to only add the new games to the database.
+much faster to only add the new games to the database. (This has been sped up significantly in the [dev](https://github.com/ChargedByte/reaktor-summer-2022/tree/dev) branch, about a second per page.)
 
 The server is written in [Kotlin](https://kotlinlang.org/).
 
