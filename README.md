@@ -5,6 +5,9 @@ My solution to Reaktor's Trainee Developer, summer
 
 ## Server
 
+> This version is broken at the moment due to rate-limiting issues.
+> Looks like the rate-limit logic needs a redesign.
+
 The server works as a "cache" for the historical game data and serves the data via a REST API. The server is also
 responsible for fetching the "massive" (~1M items at the time of writing) dataset from the Reaktor's API, and storing it
 in a relation database.
